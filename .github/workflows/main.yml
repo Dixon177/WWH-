@@ -8,12 +8,17 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Prepare Azule
+      - name: Prepare Azule & Dependencies
         run: |
-          # سنكتفي بـ Azule فقط لأنها تحتوي على كل ما نحتاجه للحقن
+          # تحميل أداة Azule
           git clone https://github.com/Al4ise/Azule
           chmod +x ./Azule/azule
           sudo ln -s $(pwd)/Azule/azule /usr/local/bin/azule
+          
+          # تحميل المكتبات الناقصة يدوياً لتجنب خطأ التحميل داخل الأداة
+          mkdir -p ~/.azule/lib
+          curl -L "https://github.com/Al4ise/Azule/raw/master/bin/CydiaSubstrate.framework.zip" -o ~/.azule/lib/CydiaSubstrate.framework.zip
+          curl -L "https://github.com/Al4ise/Azule/raw/master/bin/Substitute.zip" -o ~/.azule/lib/Substitute.zip
 
       - name: Download IPA
         env:
@@ -24,17 +29,18 @@ jobs:
 
       - name: Inject and Build
         run: |
-          # تنفيذ الحقن مباشرة بدون الحاجة لـ Theos المعقد
+          # تنفيذ الحقن مع تجاهل أخطاء التحميل لأننا حملنا الملفات مسبقاً
           azule -i "WorldWarHeroes.ipa" -f "Tweak.xm" -o "WWH_MOD.ipa" || true
           
           if [ -f "WWH_MOD.ipa" ]; then
             echo "Success: IPA has been created."
           else
-            echo "Error: Injection failed."
-            exit 1
+            # محاولة أخيرة بدون استخدام المكتبات إذا فشلت الأولى
+            azule -i "WorldWarHeroes.ipa" -f "Tweak.xm" -o "WWH_MOD.ipa" -s
           fi
 
       - name: Upload IPA
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: Modded-IPA
