@@ -1,9 +1,6 @@
 name: Build Modded IPA
 on: [push, workflow_dispatch]
 
-permissions:
-  contents: read
-
 jobs:
   build:
     runs-on: macos-latest
@@ -20,19 +17,21 @@ jobs:
           git clone https://github.com/Al4ise/Azule
           sudo ln -s $(pwd)/Azule/azule /usr/local/bin/azule
 
-      - name: Download IPA from Release
+      - name: Download IPA
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          # هذه الطريقة تستخدم أداة GitHub الرسمية للتحميل وهي الأضمن
-          gh release download v1.0 -p "WorldWarHeroes.ipa" --repo ${{ github.repository }}
+          # سيقوم بتحميل أي ملف ينتهي بـ ipa من الريليس v1.0
+          gh release download v1.0 --pattern "*.ipa" --repo ${{ github.repository }}
+          # التأكد من تسمية الملف المحمل بالاسم المطلوب للحقن
+          mv *.ipa WorldWarHeroes.ipa
 
       - name: Inject and Build
         run: |
           if [ -f "WorldWarHeroes.ipa" ]; then
             azule -i "WorldWarHeroes.ipa" -f "Tweak.xm" -o "WWH_MOD.ipa"
           else
-            echo "الملف غير موجود، تأكد من رفعه في الريليس v1.0"
+            echo "Error: IPA file not found!"
             exit 1
           fi
 
