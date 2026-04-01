@@ -19,7 +19,7 @@ jobs:
 
       - name: Download IPA
         run: |
-          # سحب الملف مباشرة من الـ Release v1.0
+          # سحب ملف اللعبة مباشرة من الـ Release v1.0 الذي في صورتك
           curl -L -o WorldWarHeroes.ipa "https://github.com/${{ github.repository }}/releases/download/v1.0/WorldWarHeroes.ipa"
 
       - name: Inject and Build
