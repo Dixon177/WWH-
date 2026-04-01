@@ -1,0 +1,29 @@
+name: Build Modded IPA
+on: [push]
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+
+      - name: Setup Theos
+        run: |
+          bash -c "$(curl -fsSL https://raw.githubusercontent.com/theos/theos/master/bin/install-theos)"
+          
+      - name: Prepare Azule
+        run: |
+          git clone https://github.com/Al4ise/Azule
+          sudo ln -s $(pwd)/Azule/azule /usr/local/bin/azule
+
+      - name: Inject and Build
+        run: |
+          # تأكد من رفع ملف اللعبة لاحقاً بنفس هذا الاسم
+          azule -i "WorldWarHeroes.ipa" -f "WWH_Hack.dylib" -o "WWH_MOD.ipa"
+
+      - name: Upload IPA
+        uses: actions/upload-artifact@v2
+        with:
+          name: Modded-IPA
+          path: WWH_MOD.ipa
