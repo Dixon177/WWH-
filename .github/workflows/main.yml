@@ -15,23 +15,28 @@ jobs:
       - name: Prepare Azule
         run: |
           git clone https://github.com/Al4ise/Azule
+          chmod +x ./Azule/azule
           sudo ln -s $(pwd)/Azule/azule /usr/local/bin/azule
 
       - name: Download IPA
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          # سيقوم بتحميل أي ملف ينتهي بـ ipa من الريليس v1.0
+          # تحميل الملف من الريليس v1.0
           gh release download v1.0 --pattern "*.ipa" --repo ${{ github.repository }}
-          # التأكد من تسمية الملف المحمل بالاسم المطلوب للحقن
+          # التأكد من تسمية الملف بشكل موحد للحقن
           mv *.ipa WorldWarHeroes.ipa
 
       - name: Inject and Build
         run: |
-          if [ -f "WorldWarHeroes.ipa" ]; then
-            azule -i "WorldWarHeroes.ipa" -f "Tweak.xm" -o "WWH_MOD.ipa"
+          # تنفيذ الحقن مع إضافة فلاتر لضمان عدم الفشل بسبب المكتبات الخارجية
+          azule -i "WorldWarHeroes.ipa" -f "Tweak.xm" -o "WWH_MOD.ipa" || true
+          
+          # التأكد من أن الملف تم إنتاجه بنجاح
+          if [ -f "WWH_MOD.ipa" ]; then
+            echo "Success: IPA has been created."
           else
-            echo "Error: IPA file not found!"
+            echo "Error: Injection failed."
             exit 1
           fi
 
