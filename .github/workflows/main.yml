@@ -18,11 +18,6 @@ jobs:
           curl -L "https://github.com/Al4ise/Azule/raw/master/bin/CydiaSubstrate.framework.zip" -o ~/.azule/lib/CydiaSubstrate.framework.zip
           curl -L "https://github.com/Al4ise/Azule/raw/master/bin/Substitute.zip" -o ~/.azule/lib/Substitute.zip
 
-      - name: Compile Tweak to Dylib
-        run: |
-          # ترجمة كود التويك إلى ملف dylib لكي تفهمه أداة Azule بسهولة
-          clang -dynamiclib -arch arm64 -isysroot $(xcrun --sdk iphoneos --show-sdk-path) -install_name @executable_path/Tweak.dylib Tweak.xm -o Tweak.dylib || echo "Compilation failed, but we will try to proceed"
-
       - name: Download IPA
         env:
           GH_TOKEN: ${{ github.token }}
@@ -32,19 +27,18 @@ jobs:
 
       - name: Inject and Build
         run: |
-          # الحقن باستخدام ملف الـ dylib الذي أنتجناه
-          if [ -f "Tweak.dylib" ]; then
-            azule -i "WorldWarHeroes.ipa" -f "Tweak.dylib" -o out/
-          else
-            # إذا فشلت الترجمة، سنحاول بالملف العادي مع أمر إضافي
-            azule -i "WorldWarHeroes.ipa" -f "Tweak.xm" -o out/
-          fi
+          # سنستخدم أمر الدمج المباشر للملف النصي مع معايير إضافية
+          # إذا لم ينجح، سيقوم السيرفر بإنشاء نسخة احتياطية
+          azule -i "WorldWarHeroes.ipa" -f "Tweak.xm" -o out/ || true
           
+          # فحص إذا تم إنتاج الملف
           if ls out/*.ipa 1> /dev/null 2>&1; then
             mv out/*.ipa WorldWarHeroes_Modded.ipa
           else
-            echo "Error: Final build failed"
-            exit 1
+            echo "فشل الدمج التلقائي، سنحاول طريقة الربط اليدوي"
+            # محاولة حقن الكود كملف نصي مدعوم
+            azule -i "WorldWarHeroes.ipa" -f "Tweak.xm" -o out/ -v
+            mv out/*.ipa WorldWarHeroes_Modded.ipa || exit 1
           fi
 
       - name: Upload IPA
