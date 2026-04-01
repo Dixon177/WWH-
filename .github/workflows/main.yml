@@ -10,13 +10,13 @@ jobs:
 
       - name: Prepare Azule & Dependencies
         run: |
-          # تحميل أداة Azule
           git clone https://github.com/Al4ise/Azule
           chmod +x ./Azule/azule
           sudo ln -s $(pwd)/Azule/azule /usr/local/bin/azule
           
-          # تحميل المكتبات الناقصة يدوياً لتجنب خطأ التحميل داخل الأداة
+          # تجهيز المجلدات والمكتبات مسبقاً لمنع أخطاء التحميل
           mkdir -p ~/.azule/lib
+          mkdir -p out
           curl -L "https://github.com/Al4ise/Azule/raw/master/bin/CydiaSubstrate.framework.zip" -o ~/.azule/lib/CydiaSubstrate.framework.zip
           curl -L "https://github.com/Al4ise/Azule/raw/master/bin/Substitute.zip" -o ~/.azule/lib/Substitute.zip
 
@@ -29,19 +29,19 @@ jobs:
 
       - name: Inject and Build
         run: |
-          # تنفيذ الحقن مع تجاهل أخطاء التحميل لأننا حملنا الملفات مسبقاً
-          azule -i "WorldWarHeroes.ipa" -f "Tweak.xm" -o "WWH_MOD.ipa" || true
+          # إضافة -o out/ هو مفتاح الحل لخطأ 27
+          azule -i "WorldWarHeroes.ipa" -f "Tweak.xm" -o out/
           
-          if [ -f "WWH_MOD.ipa" ]; then
-            echo "Success: IPA has been created."
+          # التأكد من نجاح العملية ونقل الملف للرفع
+          if ls out/*.ipa 1> /dev/null 2>&1; then
+            mv out/*.ipa WorldWarHeroes_Modded.ipa
           else
-            # محاولة أخيرة بدون استخدام المكتبات إذا فشلت الأولى
-            azule -i "WorldWarHeroes.ipa" -f "Tweak.xm" -o "WWH_MOD.ipa" -s
+            echo "Error: Injection failed"
+            exit 1
           fi
 
       - name: Upload IPA
-        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: Modded-IPA
-          path: WWH_MOD.ipa
+          path: WorldWarHeroes_Modded.ipa
