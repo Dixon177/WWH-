@@ -19,8 +19,8 @@ jobs:
 
       - name: Download IPA
         run: |
-          # سيقوم هذا الأمر بالبحث عن ملف الـ IPA في آخر Release وتحميله
-          curl -L -o WorldWarHeroes.ipa $(curl -s https://api.github.com/repos/${{ github.repository }}/releases/latest | grep "browser_download_url" | cut -d '"' -f 4 | grep ".ipa")
+          # سحب الملف مباشرة من الـ Release v1.0
+          curl -L -o WorldWarHeroes.ipa "https://github.com/${{ github.repository }}/releases/download/v1.0/WorldWarHeroes.ipa"
 
       - name: Inject and Build
         run: |
