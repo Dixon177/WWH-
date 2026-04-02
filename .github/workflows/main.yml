@@ -1,4 +1,4 @@
-name: Build Modded IPA
+name: Generate Dylib for ESign
 on: [push, workflow_dispatch]
 
 jobs:
@@ -8,38 +8,23 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Prepare Azule
+      - name: Prepare Theos (Compiler)
         run: |
-          git clone https://github.com/Al4ise/Azule
-          chmod +x ./Azule/azule
-          sudo ln -s $(pwd)/Azule/azule /usr/local/bin/azule
-
-      - name: Download IPA
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          gh release download v1.0 --pattern "*.ipa" --repo ${{ github.repository }}
-          mv *.ipa WorldWarHeroes.ipa
-
-      - name: Manual Injection
-        run: |
-          # سنحاول الحقن بصيغة ملفات الـ dylib إذا كان كودك نصياً بسيطاً
-          # أو سنقوم بتجهيز الملف للرفع اليدوي
-          mkdir -p out
-          azule -i "WorldWarHeroes.ipa" -f "Tweak.xm" -o out/ -v || true
+          # تجهيز أدوات المطورين بسرعة لترجمة الكود
+          git clone --recursive https://github.com/theos/theos.git ~/theos
+          curl -LO https://github.com/theos/sdks/raw/master/iPhoneOS14.5.sdk.tar.xz
+          mkdir -p ~/theos/sdks
+          tar -xf iPhoneOS14.5.sdk.tar.xz -C ~/theos/sdks
           
-          # إذا فشلت الأداة في إنتاج IPA، سنقوم بضغط ملفات الهاك مع اللعبة يدوياً كـ Artifact
-          if [ ! -f out/*.ipa ]; then
-            echo "نظام الدمج الآلي فشل، سنقوم برفع الملفات الأصلية لدمجها يدوياً"
-            zip -r Fix_Package.zip WorldWarHeroes.ipa Tweak.xm
-          else
-            mv out/*.ipa WorldWarHeroes_Modded.ipa
-          fi
-
-      - name: Upload Result
+      - name: Compile Tweak.xm to Dylib
+        run: |
+          # تحويل الكود النصي إلى ملف dylib حقيقي واحترافي
+          export THEOS=~/theos
+          $THEOS/bin/logos.pl Tweak.xm > Tweak.mm
+          clang -dynamiclib -arch arm64 -isysroot ~/theos/sdks/iPhoneOS14.5.sdk -F ~/theos/vendor/lib -framework Foundation -framework UIKit -lc++ Tweak.mm -o Tweak.dylib || echo "Error in Code"
+          
+      - name: Upload Dylib for Ahmed
         uses: actions/upload-artifact@v4
         with:
-          name: Modded-Project
-          path: |
-            WorldWarHeroes_Modded.ipa
-            Fix_Package.zip
+          name: Final-Tweak-File
+          path: Tweak.dylib
