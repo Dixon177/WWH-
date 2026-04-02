@@ -8,21 +8,20 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Create & Compile C++ Tweak
+      - name: Create & Compile Clean Tweak
         run: |
-          # سنكتب كود سي بلس بلس مباشر يفهمه السيرفر فوراً
+          # كود نقي 100% بدون حاجة لمكتبات خارجية
           cat <<EOF > Tweak.mm
           #import <Foundation/Foundation.h>
           #import <UIKit/UIKit.h>
-          #include <substrate.h>
 
-          // هنا نضع كود الحماية والهاك اللي اتفقنا عليه
+          // رسالة ترحيب تظهر في سجلات النظام عند تشغيل اللعبة
           __attribute__((constructor)) static void init() {
-              NSLog(@"Ahmed's Hack Loaded Successfully!");
+              NSLog(@"--- Ahmed Hack Loaded Successfully ---");
           }
           EOF
 
-          # عملية الترجمة الاحترافية
+          # ترجمة الكود باستخدام مكتبات النظام فقط
           clang -dynamiclib -arch arm64 -isysroot $(xcrun --sdk iphoneos --show-sdk-path) \
           -framework Foundation -framework UIKit -lc++ \
           Tweak.mm -o Tweak.dylib
@@ -30,5 +29,5 @@ jobs:
       - name: Upload Dylib to Ahmed
         uses: actions/upload-artifact@v4
         with:
-          name: Final_Tweak_Ready
+          name: Tweak_Final_Ahmed
           path: Tweak.dylib
