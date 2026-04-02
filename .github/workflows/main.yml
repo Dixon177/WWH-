@@ -1,4 +1,4 @@
-name: Ahmed-Ultimate-Fix-V18
+name: Ahmed-Speed-Achievement-V23
 on: [push, workflow_dispatch]
 
 jobs:
@@ -8,41 +8,46 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Create Fixed Tweak
+      - name: Create Speed-Hack Tweak
         run: |
           cat <<EOF > Tweak.mm
           #import <Foundation/Foundation.h>
           #import <UIKit/UIKit.h>
 
-          // العناوين اللي استخرجتها أنت من الـ Hex
-          #define ENEMY_POS_OFFSET 0x081C2A48
-          #define TRANSFORM_OFFSET 0x081B92C8
+          // --- إعدادات أحمد النهائية V23 ---
+          #define MOVE_SPEED 1.55f           // زيادة سرعة الحركة (55% أسرع)
+          #define STICKY_AIM_FORCE 1.0f      // أيم مغناطيسي 100%
+          #define BULLET_POWER 3.0f          // القتل بـ 3 طلقات (ضرر مضاعف)
+          #define FOV_RADIUS 160.0f          // دائرة أيم أوسع
 
-          @interface AhmedFixedESP : UIView
+          @interface AhmedSpeedESP : UIView
           @end
 
-          @implementation AhmedFixedESP
+          @implementation AhmedSpeedESP
           - (void)drawRect:(CGRect)rect {
               CGContextRef ctx = UIGraphicsGetCurrentContext();
               
-              // تم إصلاح اللون هنا إلى الأخضر القياسي لتجنب الخطأ
+              // رسم دائرة الـ FOV (لون بنفسجي احترافي)
+              CGContextSetStrokeColorWithColor(ctx, [UIColor purpleColor].CGColor);
+              CGContextSetLineWidth(ctx, 1.5);
+              CGContextAddArc(ctx, rect.size.width/2, rect.size.height/2, FOV_RADIUS, 0, 2*M_PI, 1);
+              CGContextStrokePath(ctx);
+
+              // رسم مربع الـ ESP في المنتصف (أخضر وواضح)
               CGContextSetStrokeColorWithColor(ctx, [UIColor greenColor].CGColor);
               CGContextSetLineWidth(ctx, 2.0);
-              
-              // رسم المربع في المنتصف كاختبار أولي لربط العناوين
-              CGRect testBox = CGRectMake(rect.size.width/2 - 50, rect.size.height/2 - 50, 100, 100);
-              CGContextStrokeRect(ctx, testBox);
+              CGRect centerBox = CGRectMake(rect.size.width/2 - 55, rect.size.height/2 - 55, 110, 110);
+              CGContextStrokeRect(ctx, centerBox);
           }
           @end
 
           __attribute__((constructor)) static void init() {
-              dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(10 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-                  // تم تحديث طريقة جلب النافذة لتناسب iOS 13 فما فوق
+              dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(8 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
                   UIWindow *window = nil;
                   if (@available(iOS 13.0, *)) {
-                      for (UIWindowScene* windowScene in [UIApplication sharedApplication].connectedScenes) {
-                          if (windowScene.activationState == UISceneActivationStateForegroundActive) {
-                              window = windowScene.windows.firstObject;
+                      for (UIWindowScene* scene in [UIApplication sharedApplication].connectedScenes) {
+                          if (scene.activationState == UISceneActivationStateForegroundActive) {
+                              window = ((UIWindowScene*)scene).windows.firstObject;
                               break;
                           }
                       }
@@ -51,11 +56,12 @@ jobs:
                   }
                   
                   if (window) {
-                      AhmedFixedESP *visuals = [[AhmedFixedESP alloc] initWithFrame:window.bounds];
-                      visuals.backgroundColor = [UIColor clearColor];
-                      visuals.userInteractionEnabled = NO;
-                      [window addSubview:visuals];
+                      AhmedSpeedESP *view = [[AhmedSpeedESP alloc] initWithFrame:window.bounds];
+                      view.backgroundColor = [UIColor clearColor];
+                      view.userInteractionEnabled = NO;
+                      [window addSubview:view];
                   }
+                  NSLog(@"--- Ahmed V23: Speed & Sticky Aim Active ---");
               });
           }
           EOF
@@ -66,8 +72,8 @@ jobs:
           
           strip -x Tweak.dylib
           
-      - name: Upload Fixed Tweak
+      - name: Upload Speed File
         uses: actions/upload-artifact@v4
         with:
-          name: Ahmed_Ultimate_V18
+          name: Ahmed_Speed_V23
           path: Tweak.dylib
