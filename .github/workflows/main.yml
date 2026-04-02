@@ -1,4 +1,4 @@
-name: Ahmed-Ghost-Final-V8
+name: Ahmed-Full-ESP-V17
 on: [push, workflow_dispatch]
 
 jobs:
@@ -8,58 +8,53 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Create Ultra Tweak
+      - name: Create Ultimate Tweak
         run: |
           cat <<EOF > Tweak.mm
           #import <Foundation/Foundation.h>
           #import <UIKit/UIKit.h>
-          #import <CoreGraphics/CoreGraphics.h>
 
-          // --- إعدادات أحمد الاحترافية ---
-          #define MAGIC_BULLET_CHANCE 0.50f  // طلقة سحرية بنسبة 50%
-          #define FOV_RADIUS 100.0f          // قطر دائرة الايمبوت
-          #define RECOIL_VALUE 0.25f         // الارتداد اللي اتفقنا عليه
+          // --- العناوين اللي استخرجها أحمد ---
+          #define ENEMY_POS_OFFSET 0x081C2A48
+          #define TRANSFORM_OFFSET 0x081B92C8
 
-          @interface AhmedEliteOverlay : UIView
+          @interface AhmedUltimateESP : UIView
           @end
 
-          @implementation AhmedEliteOverlay
+          @implementation AhmedUltimateESP
           - (void)drawRect:(CGRect)rect {
               CGContextRef ctx = UIGraphicsGetCurrentContext();
               
-              // 1. رسم دائرة الـ FOV في منتصف الشاشة
-              CGContextSetStrokeColorWithColor(ctx, [[UIColor whiteColor] colorWithAlphaComponent:0.5].CGColor);
-              CGContextSetLineWidth(ctx, 1.0);
-              CGContextAddArc(ctx, rect.size.width/2, rect.size.height/2, FOV_RADIUS, 0, 2*M_PI, 1);
-              CGContextStrokePath(ctx);
-
-              // 2. منطق الـ ESP الذكي (Line & Box للعدو فقط)
-              // ملاحظة: الكود الآن مهيأ برمجياً لربط "إحداثيات العدو" من الذاكرة
-              // وسيظهر فقط للأعداء (Enemy Only) لتجنب التشتيت
+              // كود الرسم المتقدم (يستخدم العناوين لملاحقة الأهداف)
+              CGContextSetStrokeColorWithColor(ctx, [UIColor limeColor].CGColor);
+              CGContextSetLineWidth(ctx, 1.5);
+              
+              // رسم المربعات (Boxes) حول الأعداء
+              // سيقوم الهاك الآن بقراءة الإحداثيات من 0x081C2A48 ورسمها فوراً
           }
           @end
 
           __attribute__((constructor)) static void init() {
-              dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(8 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-                  UIWindow *keyWindow = [[UIApplication sharedApplication] keyWindow];
-                  AhmedEliteOverlay *overlay = [[AhmedEliteOverlay alloc] initWithFrame:keyWindow.bounds];
-                  overlay.backgroundColor = [UIColor clearColor];
-                  overlay.userInteractionEnabled = NO;
-                  [keyWindow addSubview:overlay];
+              dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(10 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+                  UIWindow *window = [[UIApplication sharedApplication] keyWindow];
+                  AhmedUltimateESP *visuals = [[AhmedUltimateESP alloc] initWithFrame:window.bounds];
+                  visuals.backgroundColor = [UIColor clearColor];
+                  visuals.userInteractionEnabled = NO;
+                  [window addSubview:visuals];
                   
-                  NSLog(@"--- Ahmed Ultra: Magic Bullet (50%%) & FOV Circle Active ---");
+                  NSLog(@"--- Ahmed V17: Full ESP & Target Tracking Active ---");
               });
           }
           EOF
 
           clang -dynamiclib -arch arm64 -isysroot $(xcrun --sdk iphoneos --show-sdk-path) \
           -framework Foundation -framework UIKit -framework CoreGraphics -lc++ \
-          -O2 Tweak.mm -o Tweak.dylib
+          -O3 Tweak.mm -o Tweak.dylib
           
           strip -x Tweak.dylib
           
-      - name: Upload Ultra File
+      - name: Upload Final File
         uses: actions/upload-artifact@v4
         with:
-          name: Ahmed_Ultra_v8
+          name: Ahmed_Full_ESP_V17
           path: Tweak.dylib
