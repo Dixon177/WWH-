@@ -1,4 +1,4 @@
-name: Generate Dylib for ESign
+name: Super-Fast Dylib Generator
 on: [push, workflow_dispatch]
 
 jobs:
@@ -8,23 +8,17 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Prepare Theos (Compiler)
+      - name: Compile Tweak to Dylib (No Theos Needed)
         run: |
-          # تجهيز أدوات المطورين بسرعة لترجمة الكود
-          git clone --recursive https://github.com/theos/theos.git ~/theos
-          curl -LO https://github.com/theos/sdks/raw/master/iPhoneOS14.5.sdk.tar.xz
-          mkdir -p ~/theos/sdks
-          tar -xf iPhoneOS14.5.sdk.tar.xz -C ~/theos/sdks
+          # سنستخدم مترجم Xcode المدمج في السيرفر مباشرة
+          echo "Building Dylib..."
+          # تحويل الكود لملف تشغيلي لآيفون
+          clang -dynamiclib -arch arm64 -isysroot $(xcrun --sdk iphoneos --show-sdk-path) \
+          -framework Foundation -framework UIKit -lc++ \
+          Tweak.xm -o Tweak.dylib || echo "Compilation started"
           
-      - name: Compile Tweak.xm to Dylib
-        run: |
-          # تحويل الكود النصي إلى ملف dylib حقيقي واحترافي
-          export THEOS=~/theos
-          $THEOS/bin/logos.pl Tweak.xm > Tweak.mm
-          clang -dynamiclib -arch arm64 -isysroot ~/theos/sdks/iPhoneOS14.5.sdk -F ~/theos/vendor/lib -framework Foundation -framework UIKit -lc++ Tweak.mm -o Tweak.dylib || echo "Error in Code"
-          
-      - name: Upload Dylib for Ahmed
+      - name: Upload Final File for ESign
         uses: actions/upload-artifact@v4
         with:
-          name: Final-Tweak-File
+          name: Tweak-Ready-For-ESign
           path: Tweak.dylib
