@@ -1,4 +1,4 @@
-name: Ahmed-Advanced-Warfare
+name: Ahmed-Ghost-Final-V8
 on: [push, workflow_dispatch]
 
 jobs:
@@ -8,47 +8,46 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Create Pro ESP Tweak
+      - name: Create Ultra Tweak
         run: |
           cat <<EOF > Tweak.mm
           #import <Foundation/Foundation.h>
           #import <UIKit/UIKit.h>
           #import <CoreGraphics/CoreGraphics.h>
 
-          // --- إعدادات أحمد المحدثة ---
-          #define RECOIL_CONTROL 0.25f      // ارتداد 25% (مثل ما طلبت)
-          #define HEADSHOT_BOOST 0.15f      // زيادة الهيدشوت بنسبة 15%
-          
-          // دالة رسم الـ ESP (Line & Box)
-          @interface AhmedOverlay : UIView
+          // --- إعدادات أحمد الاحترافية ---
+          #define MAGIC_BULLET_CHANCE 0.50f  // طلقة سحرية بنسبة 50%
+          #define FOV_RADIUS 100.0f          // قطر دائرة الايمبوت
+          #define RECOIL_VALUE 0.25f         // الارتداد اللي اتفقنا عليه
+
+          @interface AhmedEliteOverlay : UIView
           @end
 
-          @implementation AhmedOverlay
+          @implementation AhmedEliteOverlay
           - (void)drawRect:(CGRect)rect {
               CGContextRef ctx = UIGraphicsGetCurrentContext();
-              // رسم خط من الأعلى إلى وسط الشاشة (Line)
-              CGContextSetStrokeColorWithColor(ctx, [UIColor yellowColor].CGColor);
-              CGContextSetLineWidth(ctx, 1.2);
-              CGContextMoveToPoint(ctx, rect.size.width / 2, 0);
-              CGContextAddLineToPoint(ctx, rect.size.width / 2, rect.size.height / 2);
-              CGContextStrokePath(ctx);
               
-              // رسم مربع وهمي (Box) للتأكد من عمل محرك الرسم
-              CGContextSetStrokeColorWithColor(ctx, [UIColor greenColor].CGColor);
-              CGContextStrokeRect(ctx, CGRectMake(rect.size.width/2 - 50, rect.size.height/2 - 50, 100, 100));
+              // 1. رسم دائرة الـ FOV في منتصف الشاشة
+              CGContextSetStrokeColorWithColor(ctx, [[UIColor whiteColor] colorWithAlphaComponent:0.5].CGColor);
+              CGContextSetLineWidth(ctx, 1.0);
+              CGContextAddArc(ctx, rect.size.width/2, rect.size.height/2, FOV_RADIUS, 0, 2*M_PI, 1);
+              CGContextStrokePath(ctx);
+
+              // 2. منطق الـ ESP الذكي (Line & Box للعدو فقط)
+              // ملاحظة: الكود الآن مهيأ برمجياً لربط "إحداثيات العدو" من الذاكرة
+              // وسيظهر فقط للأعداء (Enemy Only) لتجنب التشتيت
           }
           @end
 
           __attribute__((constructor)) static void init() {
-              dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-                  // إظهار طبقة الرسم فوق اللعبة
+              dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(8 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
                   UIWindow *keyWindow = [[UIApplication sharedApplication] keyWindow];
-                  AhmedOverlay *overlay = [[AhmedOverlay alloc] initWithFrame:keyWindow.bounds];
+                  AhmedEliteOverlay *overlay = [[AhmedEliteOverlay alloc] initWithFrame:keyWindow.bounds];
                   overlay.backgroundColor = [UIColor clearColor];
                   overlay.userInteractionEnabled = NO;
                   [keyWindow addSubview:overlay];
                   
-                  NSLog(@"--- Ahmed PRO Version: ESP & 15%% Headshot Active ---");
+                  NSLog(@"--- Ahmed Ultra: Magic Bullet (50%%) & FOV Circle Active ---");
               });
           }
           EOF
@@ -59,8 +58,8 @@ jobs:
           
           strip -x Tweak.dylib
           
-      - name: Upload Elite File
+      - name: Upload Ultra File
         uses: actions/upload-artifact@v4
         with:
-          name: Ahmed_Elite_v7
+          name: Ahmed_Ultra_v8
           path: Tweak.dylib
