@@ -1,4 +1,4 @@
-name: Ahmed-Full-ESP-V17
+name: Ahmed-Ultimate-Fix-V18
 on: [push, workflow_dispatch]
 
 jobs:
@@ -8,41 +8,54 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Create Ultimate Tweak
+      - name: Create Fixed Tweak
         run: |
           cat <<EOF > Tweak.mm
           #import <Foundation/Foundation.h>
           #import <UIKit/UIKit.h>
 
-          // --- العناوين اللي استخرجها أحمد ---
+          // العناوين اللي استخرجتها أنت من الـ Hex
           #define ENEMY_POS_OFFSET 0x081C2A48
           #define TRANSFORM_OFFSET 0x081B92C8
 
-          @interface AhmedUltimateESP : UIView
+          @interface AhmedFixedESP : UIView
           @end
 
-          @implementation AhmedUltimateESP
+          @implementation AhmedFixedESP
           - (void)drawRect:(CGRect)rect {
               CGContextRef ctx = UIGraphicsGetCurrentContext();
               
-              // كود الرسم المتقدم (يستخدم العناوين لملاحقة الأهداف)
-              CGContextSetStrokeColorWithColor(ctx, [UIColor limeColor].CGColor);
-              CGContextSetLineWidth(ctx, 1.5);
+              // تم إصلاح اللون هنا إلى الأخضر القياسي لتجنب الخطأ
+              CGContextSetStrokeColorWithColor(ctx, [UIColor greenColor].CGColor);
+              CGContextSetLineWidth(ctx, 2.0);
               
-              // رسم المربعات (Boxes) حول الأعداء
-              // سيقوم الهاك الآن بقراءة الإحداثيات من 0x081C2A48 ورسمها فوراً
+              // رسم المربع في المنتصف كاختبار أولي لربط العناوين
+              CGRect testBox = CGRectMake(rect.size.width/2 - 50, rect.size.height/2 - 50, 100, 100);
+              CGContextStrokeRect(ctx, testBox);
           }
           @end
 
           __attribute__((constructor)) static void init() {
               dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(10 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-                  UIWindow *window = [[UIApplication sharedApplication] keyWindow];
-                  AhmedUltimateESP *visuals = [[AhmedUltimateESP alloc] initWithFrame:window.bounds];
-                  visuals.backgroundColor = [UIColor clearColor];
-                  visuals.userInteractionEnabled = NO;
-                  [window addSubview:visuals];
+                  // تم تحديث طريقة جلب النافذة لتناسب iOS 13 فما فوق
+                  UIWindow *window = nil;
+                  if (@available(iOS 13.0, *)) {
+                      for (UIWindowScene* windowScene in [UIApplication sharedApplication].connectedScenes) {
+                          if (windowScene.activationState == UISceneActivationStateForegroundActive) {
+                              window = windowScene.windows.firstObject;
+                              break;
+                          }
+                      }
+                  } else {
+                      window = [UIApplication sharedApplication].keyWindow;
+                  }
                   
-                  NSLog(@"--- Ahmed V17: Full ESP & Target Tracking Active ---");
+                  if (window) {
+                      AhmedFixedESP *visuals = [[AhmedFixedESP alloc] initWithFrame:window.bounds];
+                      visuals.backgroundColor = [UIColor clearColor];
+                      visuals.userInteractionEnabled = NO;
+                      [window addSubview:visuals];
+                  }
               });
           }
           EOF
@@ -53,8 +66,8 @@ jobs:
           
           strip -x Tweak.dylib
           
-      - name: Upload Final File
+      - name: Upload Fixed Tweak
         uses: actions/upload-artifact@v4
         with:
-          name: Ahmed_Full_ESP_V17
+          name: Ahmed_Ultimate_V18
           path: Tweak.dylib
