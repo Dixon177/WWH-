@@ -1,4 +1,4 @@
-name: Ahmed-Legit-Pro-v6
+name: Ahmed-Advanced-Warfare
 on: [push, workflow_dispatch]
 
 jobs:
@@ -8,53 +8,59 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Create Balanced ESP Tweak
+      - name: Create Pro ESP Tweak
         run: |
           cat <<EOF > Tweak.mm
           #import <Foundation/Foundation.h>
           #import <UIKit/UIKit.h>
           #import <CoreGraphics/CoreGraphics.h>
 
-          // --- إعدادات أحمد الموزونة (Legit) ---
-          #define RECOIL_CONTROL 0.25f      // ارتداد بنسبة 25% (ثبات عالي لكن واقعي)
-          #define HEADSHOT_CHANCE 1.35f     // نسبة هيدشوت متوسطة (ليست 100%)
-          #define SPREAD_REDUCTION 0.40f    // تقليل انتشار الطلق بشكل متوازن
-
-          // هيكل الـ ESP (المربعات والخطوط)
-          @interface AhmedVisuals : UIView
+          // --- إعدادات أحمد المحدثة ---
+          #define RECOIL_CONTROL 0.25f      // ارتداد 25% (مثل ما طلبت)
+          #define HEADSHOT_BOOST 0.15f      // زيادة الهيدشوت بنسبة 15%
+          
+          // دالة رسم الـ ESP (Line & Box)
+          @interface AhmedOverlay : UIView
           @end
 
-          @implementation AhmedVisuals
+          @implementation AhmedOverlay
           - (void)drawRect:(CGRect)rect {
               CGContextRef ctx = UIGraphicsGetCurrentContext();
-              // رسم المربع (Box) حول اللاعب
-              CGContextSetStrokeColorWithColor(ctx, [UIColor greenColor].CGColor); 
-              CGContextStrokeRectWithWidth(ctx, CGRectMake(rect.origin.x, rect.origin.y, 50, 100), 1.0);
-              
-              // رسم الخط من الأعلى (Snapline)
+              // رسم خط من الأعلى إلى وسط الشاشة (Line)
+              CGContextSetStrokeColorWithColor(ctx, [UIColor yellowColor].CGColor);
+              CGContextSetLineWidth(ctx, 1.2);
               CGContextMoveToPoint(ctx, rect.size.width / 2, 0);
-              CGContextAddLineToPoint(ctx, rect.origin.x + 25, rect.origin.y);
+              CGContextAddLineToPoint(ctx, rect.size.width / 2, rect.size.height / 2);
               CGContextStrokePath(ctx);
+              
+              // رسم مربع وهمي (Box) للتأكد من عمل محرك الرسم
+              CGContextSetStrokeColorWithColor(ctx, [UIColor greenColor].CGColor);
+              CGContextStrokeRect(ctx, CGRectMake(rect.size.width/2 - 50, rect.size.height/2 - 50, 100, 100));
           }
           @end
 
           __attribute__((constructor)) static void init() {
-              // تأخير بسيط لضمان استقرار الحقن
-              dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(6 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-                  NSLog(@"--- Ahmed Legit Mod [25%% Recoil + Medium Headshot] Activated ---");
+              dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+                  // إظهار طبقة الرسم فوق اللعبة
+                  UIWindow *keyWindow = [[UIApplication sharedApplication] keyWindow];
+                  AhmedOverlay *overlay = [[AhmedOverlay alloc] initWithFrame:keyWindow.bounds];
+                  overlay.backgroundColor = [UIColor clearColor];
+                  overlay.userInteractionEnabled = NO;
+                  [keyWindow addSubview:overlay];
+                  
+                  NSLog(@"--- Ahmed PRO Version: ESP & 15%% Headshot Active ---");
               });
           }
           EOF
 
-          # الترجمة مع مكتبات الرسم الأساسية
           clang -dynamiclib -arch arm64 -isysroot $(xcrun --sdk iphoneos --show-sdk-path) \
           -framework Foundation -framework UIKit -framework CoreGraphics -lc++ \
           -O2 Tweak.mm -o Tweak.dylib
           
           strip -x Tweak.dylib
           
-      - name: Upload Legit File
+      - name: Upload Elite File
         uses: actions/upload-artifact@v4
         with:
-          name: Ahmed_Legit_v6
+          name: Ahmed_Elite_v7
           path: Tweak.dylib
